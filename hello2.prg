@@ -1,21 +1,35 @@
-FUNCTION RunPowerShellCommand( cCommand )
-  LOCAL cOutputFile := "ps_output.txt"
-  LOCAL cFullCommand := "powershell -Command " + hb_ValToStr( cCommand ) + " > " + cOutputFile
-  LOCAL nResult := hb_run( cFullCommand )
+FUNCTION RunPowerShell( cCommand )
+  LOCAL hPipe, cLine, cResult := ""
 
-  IF hb_FileExists( cOutputFile )
-    cResult := hb_MemoRead( cOutputFile )
-    hb_FileDelete( cOutputFile )  // Nettoyage
-    RETURN cResult
+  // Ouvre un pipe pour exécuter PowerShell
+  hPipe := hb_popen( "pwsh -Command " + hb_OsEncode( cCommand ) + " 2>&1", "r" )
+
+  IF hPipe != NIL
+      // Lire chaque ligne de la sortie PowerShell
+      DO WHILE .T.
+          cLine := hb_fgets( hPipe )  // Récupérer une ligne
+          IF EMPTY( cLine )
+              EXIT
+          ENDIF
+          cResult += cLine  // Ajouter à la sortie finale
+      ENDDO
+      hb_pclose( hPipe )  // Fermer le pipe
+  ELSE
+      cResult := "Erreur : Impossible d'exécuter PowerShell"
   ENDIF
 
-RETURN ""
-
+RETURN cResult
 
 PROCEDURE Main()
-  LOCAL cCmd := '"Get-Date"'
-  LOCAL cResult := RunPowerShellCommand( cCmd )
-    
-  ? "Résultat de PowerShell:", cResult
-  INKEY(0)
+  LOCAL cOutput
+  CLS
+
+  // Exécuter une commande PowerShell et récupérer le résultat
+  cOutput := RunPowerShell( "Get-Date" )
+
+  // Afficher le résultat dans Harbour
+  ? "Résultat de PowerShell :"
+  ? cOutput
+
+  INKEY(0)  // Attente avant de quitter
 RETURN
