@@ -1,0 +1,12 @@
+hello.prg
+
+
+-lhbgt
+-lhbcplr
+
+-DDEBUG 
+
+
+-w3
+
+-omonprojet.exe
